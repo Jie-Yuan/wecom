@@ -16,8 +16,6 @@ with open('requirements.txt', encoding='utf-8') as f:
     requirements = f.read().split('\n')
 
 setup(
-    long_description_content_type="text/markdown",
-
     author="Betterme",
     author_email='yuanjie@example.com',
     python_requires='>=3.6',
@@ -34,7 +32,6 @@ setup(
     description="企业微信SDK",
     entry_points={
         'console_scripts': [
-            'wecom=wecom.cli:main',
             'wecom=wecom.clis.cli:cli'
         ],
     },

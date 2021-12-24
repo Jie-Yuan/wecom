@@ -1,5 +1,3 @@
-"""Top-level package for wecom."""
+# -*- coding: utf-8 -*-
 
-__author__ = """Betterme"""
-__email__ = 'yuanjie@example.com'
-__version__ = '0.0.0'
+from .base import WeChatWorkSDK
