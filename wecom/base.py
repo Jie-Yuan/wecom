@@ -150,5 +150,5 @@ class WeChatWorkSDK(ValidationMixin):
 if __name__ == '__main__':
     from wecom import WeChatWorkSDK
 
-    we = WeChatWorkSDK('ww3c6024bb94ecef59', 'empKNMx-RSgd4tK6uzVA56qCl1QY6eErRdSb7Hr5vyQ')
+    we = WeChatWorkSDK('ww3c6024bb94ecef59x', 'empKNMx-RSgd4tK6uzVA56qCl1QY6eErRdSb7Hr5vyQ')
     we.send_file("/Users/yuanjie/Desktop/111.jpeg", touser='@all', type='image')
