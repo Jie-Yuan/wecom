@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+import os
 import json
 
 import requests
@@ -8,9 +8,9 @@ import requests
 from .exception import WeChatWorkSDKException
 from .mixin import ValidationMixin
 
-
 # 企业微信API根URL
-WECHATWORK_API_ROOT_URL = 'https://qyapi.weixin.qq.com/cgi-bin/'
+# WECHATWORK_API_ROOT_URL = os.environ.get('WECHATWORK_API_ROOT_URL', 'https://qyapi.weixin.qq.com/cgi-bin')
+WECHATWORK_API_ROOT_URL = os.environ.get('WECHATWORK_API_ROOT_URL', 'https://qywxlocal.nesc.cn:7443/cgi-bin')
 
 
 def get_access_token(corpid, secret) -> (str, int):
@@ -22,8 +22,7 @@ def get_access_token(corpid, secret) -> (str, int):
         - access_token: 获取到的凭证，最长为512字节
         - expires_in: 凭证的有效时间（秒），通常为7200
     """
-    url = WECHATWORK_API_ROOT_URL + 'gettoken?corpid={corpid}&corpsecret={secret}'\
-        .format(corpid=corpid, secret=secret)
+    url = f'{WECHATWORK_API_ROOT_URL}/gettoken?corpid={corpid}&corpsecret={secret}'
     data = json.loads(requests.get(url).content)
     if int(data['errcode']) == 0:
         return data['access_token'], int(data['expires_in'])
@@ -64,9 +63,6 @@ class WeChatWorkSDK(ValidationMixin):
         self._access_token = None
 
     def request_api(self, method, api, query_params=None, data=None):
-        # 验证数据
-        self.validate(**{**query_params, **data})
-
         # 拼接API的URL
         url = self.API_ROOT_URL + api
 
@@ -103,5 +99,56 @@ class WeChatWorkSDK(ValidationMixin):
     def post_api(self, api, query_params=None, data=None):
         return self.request_api('POST', api, query_params, data)
 
+    ########################自定义
+    def _send(self, data=None):
+        if data is None:
+            data = {
+                "touser": "7683",
+
+                "msgtype": "text",
+                "agentid": 1000041,
+                "text": {
+                    "content": "🐅"
+                },
+                "safe": 0,
+                "enable_id_trans": 0,
+                "enable_duplicate_check": 0
+            }
+
+        url = f'{self.API_ROOT_URL}/message/send?access_token={self.access_token}'
+        return requests.post(url, json=data)
+
+    def send_file(self, path, type='file', touser="7605|7683", agentid=1000041):
+        upload_media_url = f"{self.API_ROOT_URL}/media/upload?access_token={self.access_token}&type={type}"
+
+        with open(path, 'rb') as f:
+            files = {'data': f}
+            response = requests.post(upload_media_url, files=files)
+        try:
+            media_id = response.json()['media_id']
+
+            data = {
+                "touser": touser,  # "@all"
+
+                "msgtype": type,
+                "agentid": agentid,
+                type: {
+                    "media_id": media_id
+                },
+                "safe": 0,
+                "enable_id_trans": 0,
+                "enable_duplicate_check": 0
+            }
+
+            return self._send(data)
+
+        except Exception as e:
+            print(e)
+            return response.json()
 
 
+if __name__ == '__main__':
+    from wecom import WeChatWorkSDK
+
+    we = WeChatWorkSDK('ww3c6024bb94ecef59', 'empKNMx-RSgd4tK6uzVA56qCl1QY6eErRdSb7Hr5vyQ')
+    we.send_file("/Users/yuanjie/Desktop/111.jpeg", touser='@all', type='image')
